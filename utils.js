@@ -1,6 +1,13 @@
 import 'dotenv/config';
 
 export async function DiscordRequest(endpoint, options) {
+  // Support both the repo's expected env var names and the "YOUR_*" names from .env.sample
+  const token = process.env.DISCORD_TOKEN || process.env.YOUR_BOT_TOKEN;
+  if (!token) {
+    throw new Error(
+      'Missing DISCORD_TOKEN (or YOUR_BOT_TOKEN). Set your Bot Token in .env and try again.'
+    );
+  }
   // append endpoint to root API URL
   const url = 'https://discord.com/api/v10/' + endpoint;
   // Stringify payloads
@@ -8,7 +15,7 @@ export async function DiscordRequest(endpoint, options) {
   // Use fetch to make requests
   const res = await fetch(url, {
     headers: {
-      Authorization: `Bot ${process.env.DISCORD_TOKEN}`,
+      Authorization: `Bot ${token}`,
       'Content-Type': 'application/json; charset=UTF-8',
       'User-Agent': 'DiscordBot (https://github.com/discord/discord-example-app, 1.0.0)',
     },

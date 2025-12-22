@@ -46,4 +46,6 @@ const CHALLENGE_COMMAND = {
 
 const ALL_COMMANDS = [TEST_COMMAND, CHALLENGE_COMMAND];
 
-InstallGlobalCommands(process.env.APP_ID, ALL_COMMANDS);
+// Support both the repo's expected env var names and the "YOUR_*" names from .env.sample
+const APP_ID = process.env.APP_ID || process.env.YOUR_APP_ID;
+InstallGlobalCommands(APP_ID, ALL_COMMANDS);
