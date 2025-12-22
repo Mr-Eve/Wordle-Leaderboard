@@ -44,7 +44,24 @@ const CHALLENGE_COMMAND = {
   contexts: [0, 2],
 };
 
-const ALL_COMMANDS = [TEST_COMMAND, CHALLENGE_COMMAND];
+// Ask an AI a question
+const ASK_COMMAND = {
+  name: 'ask',
+  description: 'Ask the bot a question (AI)',
+  options: [
+    {
+      type: 3,
+      name: 'question',
+      description: 'What do you want to ask?',
+      required: true,
+    },
+  ],
+  type: 1,
+  integration_types: [0, 1],
+  contexts: [0, 1, 2],
+};
+
+const ALL_COMMANDS = [TEST_COMMAND, CHALLENGE_COMMAND, ASK_COMMAND];
 
 // Support both the repo's expected env var names and the "YOUR_*" names from .env.sample
 const APP_ID = process.env.APP_ID || process.env.YOUR_APP_ID;

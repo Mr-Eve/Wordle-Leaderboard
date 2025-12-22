@@ -1,9 +1,11 @@
 import 'dotenv/config';
 
 export async function DiscordRequest(endpoint, options) {
-  // Support both the repo's expected env var names and the "YOUR_*" names from .env.sample
+  const opts = options || {};
   const token = process.env.DISCORD_TOKEN || process.env.YOUR_BOT_TOKEN;
-  if (!token) {
+  const omitAuth = Boolean(opts.omitAuth);
+  // Support both the repo's expected env var names and the "YOUR_*" names from .env.sample
+  if (!omitAuth && !token) {
     throw new Error(
       'Missing DISCORD_TOKEN (or YOUR_BOT_TOKEN). Set your Bot Token in .env and try again.'
     );
@@ -11,15 +13,21 @@ export async function DiscordRequest(endpoint, options) {
   // append endpoint to root API URL
   const url = 'https://discord.com/api/v10/' + endpoint;
   // Stringify payloads
-  if (options.body) options.body = JSON.stringify(options.body);
+  if (opts.body) opts.body = JSON.stringify(opts.body);
+
+  const headers = {
+    'Content-Type': 'application/json; charset=UTF-8',
+    'User-Agent': 'DiscordBot (https://github.com/discord/discord-example-app, 1.0.0)',
+    ...(opts.headers || {}),
+  };
+  if (!omitAuth) headers.Authorization = `Bot ${token}`;
+
   // Use fetch to make requests
   const res = await fetch(url, {
     headers: {
-      Authorization: `Bot ${token}`,
-      'Content-Type': 'application/json; charset=UTF-8',
-      'User-Agent': 'DiscordBot (https://github.com/discord/discord-example-app, 1.0.0)',
+      ...headers,
     },
-    ...options
+    ...opts
   });
   // throw API errors
   if (!res.ok) {

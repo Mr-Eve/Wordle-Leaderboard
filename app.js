@@ -11,6 +11,7 @@ import {
 import { getRandomEmoji, DiscordRequest } from './utils.js';
 import { getShuffledOptions, getResult } from './game.js';
 import { startGateway } from './gateway.js';
+import { askAI } from './openai.js';
 
 // Create an express app
 const app = express();
@@ -21,6 +22,7 @@ const activeGames = {};
 
 // Support both the repo's expected env var names and the "YOUR_*" names from .env.sample
 const PUBLIC_KEY = process.env.PUBLIC_KEY || process.env.YOUR_PUBLIC_KEY;
+const APP_ID = process.env.APP_ID || process.env.YOUR_APP_ID;
 // Start a Gateway connection (so the bot appears "online") when a bot token is present.
 // This is optional; the HTTP interactions endpoint still works without it.
 startGateway().catch((err) => console.error('Failed to start Discord gateway client:', err));
@@ -31,7 +33,7 @@ startGateway().catch((err) => console.error('Failed to start Discord gateway cli
  */
 app.post('/interactions', verifyKeyMiddleware(PUBLIC_KEY), async function (req, res) {
   // Interaction id, type and data
-  const { id, type, data } = req.body;
+  const { id, type, data, token } = req.body;
 
   /**
    * Handle verification requests
@@ -63,6 +65,48 @@ app.post('/interactions', verifyKeyMiddleware(PUBLIC_KEY), async function (req, 
           ]
         },
       });
+    }
+
+    // "ask" command (AI)
+    if (name === 'ask') {
+      const question =
+        data &&
+        data.options &&
+        data.options[0] &&
+        (data.options[0].value || data.options[0].value === '' ? data.options[0].value : '');
+
+      // Acknowledge immediately to avoid the 3s timeout; we'll edit the original response later.
+      res.send({ type: InteractionResponseType.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE });
+
+      (async () => {
+        try {
+          if (!APP_ID) throw new Error('Missing APP_ID (or YOUR_APP_ID) in .env');
+          if (!token) throw new Error('Missing interaction token in request');
+
+          const answer = await askAI(question);
+          const endpoint = `webhooks/${APP_ID}/${token}/messages/@original`;
+          await DiscordRequest(endpoint, {
+            method: 'PATCH',
+            omitAuth: true,
+            body: {
+              content: answer || '(No output)',
+            },
+          });
+        } catch (err) {
+          const message = err && err.message ? err.message : String(err);
+          const endpoint = APP_ID && token ? `webhooks/${APP_ID}/${token}/messages/@original` : null;
+          if (endpoint) {
+            await DiscordRequest(endpoint, {
+              method: 'PATCH',
+              omitAuth: true,
+              body: { content: `Error: ${message}` },
+            }).catch(() => {});
+          }
+          console.error('ask command failed:', err);
+        }
+      })();
+
+      return;
     }
 
     console.error(`unknown command: ${name}`);
