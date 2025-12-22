@@ -23,20 +23,38 @@ async function readRawBody(req) {
 }
 
 export default async function handler(req, res) {
+  const publicKey = getEnv('PUBLIC_KEY', 'YOUR_PUBLIC_KEY');
+  const appId = getEnv('APP_ID', 'YOUR_APP_ID');
+
+  // Simple health check to confirm routing + env vars on Vercel.
+  if (req.method === 'GET') {
+    res.statusCode = 200;
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    return res.end(
+      JSON.stringify({
+        ok: true,
+        hasPublicKey: Boolean(publicKey),
+        hasAppId: Boolean(appId),
+      })
+    );
+  }
+
   if (req.method !== 'POST') {
     res.statusCode = 405;
     res.setHeader('Content-Type', 'text/plain; charset=utf-8');
     return res.end('Method Not Allowed');
   }
 
-  const publicKey = getEnv('PUBLIC_KEY', 'YOUR_PUBLIC_KEY');
-  const appId = getEnv('APP_ID', 'YOUR_APP_ID');
-
   const signature = req.headers['x-signature-ed25519'];
   const timestamp = req.headers['x-signature-timestamp'];
   if (!publicKey || !signature || !timestamp) {
     res.statusCode = 401;
     res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    console.error('Unauthorized: missing PUBLIC_KEY and/or signature headers', {
+      hasPublicKey: Boolean(publicKey),
+      hasSignature: Boolean(signature),
+      hasTimestamp: Boolean(timestamp),
+    });
     return res.end('Missing signature headers or PUBLIC_KEY');
   }
 
@@ -45,6 +63,7 @@ export default async function handler(req, res) {
   if (!isValid) {
     res.statusCode = 401;
     res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    console.error('Unauthorized: bad request signature');
     return res.end('Bad request signature');
   }
 

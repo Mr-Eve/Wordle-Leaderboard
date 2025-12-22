@@ -1,6 +1,7 @@
 {
   "rewrites": [
-    { "source": "/interactions", "destination": "/api/interactions" }
+    { "source": "/interactions", "destination": "/api/interactions" },
+    { "source": "/interactions/", "destination": "/api/interactions" }
   ]
 }
 
