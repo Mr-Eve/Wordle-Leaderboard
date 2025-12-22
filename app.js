@@ -10,6 +10,7 @@ import {
 } from 'discord-interactions';
 import { getRandomEmoji, DiscordRequest } from './utils.js';
 import { getShuffledOptions, getResult } from './game.js';
+import { startGateway } from './gateway.js';
 
 // Create an express app
 const app = express();
@@ -20,6 +21,9 @@ const activeGames = {};
 
 // Support both the repo's expected env var names and the "YOUR_*" names from .env.sample
 const PUBLIC_KEY = process.env.PUBLIC_KEY || process.env.YOUR_PUBLIC_KEY;
+// Start a Gateway connection (so the bot appears "online") when a bot token is present.
+// This is optional; the HTTP interactions endpoint still works without it.
+startGateway().catch((err) => console.error('Failed to start Discord gateway client:', err));
 
 /**
  * Interactions endpoint URL where Discord will send HTTP requests
