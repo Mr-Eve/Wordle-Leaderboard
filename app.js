@@ -67,6 +67,16 @@ app.post('/interactions', verifyKeyMiddleware(PUBLIC_KEY), async function (req, 
       });
     }
 
+    // "hello" command
+    if (name === 'hello') {
+      return res.send({
+        type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+        data: {
+          content: 'Hello world!',
+        },
+      });
+    }
+
     // "ask" command (AI)
     if (name === 'ask') {
       const question =

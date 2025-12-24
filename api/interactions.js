@@ -111,6 +111,16 @@ export default async function handler(req, res) {
     );
   }
 
+  if (name === 'hello') {
+    res.setHeader('Content-Type', 'application/json');
+    return res.end(
+      JSON.stringify({
+        type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+        data: { content: 'Hello world!' },
+      })
+    );
+  }
+
   if (name === 'ask') {
     // Acknowledge immediately; we will edit the original message later.
     res.setHeader('Content-Type', 'application/json');

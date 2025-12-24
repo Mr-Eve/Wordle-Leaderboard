@@ -26,6 +26,15 @@ const TEST_COMMAND = {
   contexts: [0, 1, 2],
 };
 
+// Simple "Hello world!" command
+const HELLO_COMMAND = {
+  name: 'hello',
+  description: 'Prints Hello world!',
+  type: 1,
+  integration_types: [0, 1],
+  contexts: [0, 1, 2],
+};
+
 // Command containing options
 const CHALLENGE_COMMAND = {
   name: 'challenge',
@@ -61,7 +70,7 @@ const ASK_COMMAND = {
   contexts: [0, 1, 2],
 };
 
-const ALL_COMMANDS = [TEST_COMMAND, CHALLENGE_COMMAND, ASK_COMMAND];
+const ALL_COMMANDS = [TEST_COMMAND, HELLO_COMMAND, CHALLENGE_COMMAND, ASK_COMMAND];
 
 // Support both the repo's expected env var names and the "YOUR_*" names from .env.sample
 const APP_ID = process.env.APP_ID || process.env.YOUR_APP_ID;
